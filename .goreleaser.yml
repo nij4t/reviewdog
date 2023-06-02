@@ -7,6 +7,7 @@ before:
 builds:
   - env:
     - CGO_ENABLED=0
+    - GO111MODULE=on
     main: ./cmd/reviewdog/
     ldflags: -s -w -X github.com/nij4t/reviewdog/commands.Version={{.Version}}
     goos:
