@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	insights "github.com/reva2/bitbucket-insights-api"
 )
@@ -15,10 +17,30 @@ type ServerAPIClient struct {
 	helper *ServerAPIHelper
 }
 
+type Interceptor struct {
+	core http.RoundTripper
+}
+
+func (Interceptor) modifyRequest(r *http.Request) *http.Request {
+	u, _ := url.Parse(r.URL.String())
+	u.Path = strings.ReplaceAll(u.Path, "1.0", "latest")
+	r.URL = u
+	return r
+}
+
+func (i Interceptor) RoundTrip(r *http.Request) (*http.Response, error) {
+	// modify before the request is sent
+	newReq := i.modifyRequest(r)
+
+	// send the request using the DefaultTransport
+	return i.core.RoundTrip(newReq)
+}
+
 // NewServerAPIClient creates client for Bitbucket Server Code Insights API
 func NewServerAPIClient() APIClient {
 	httpClient := &http.Client{
-		Timeout: httpTimeout,
+		Timeout:   httpTimeout,
+		Transport: Interceptor{http.DefaultTransport},
 	}
 
 	config := insights.NewConfiguration()
