@@ -1,4 +1,4 @@
-module github.com/reviewdog/reviewdog
+module github.com/nij4t/reviewdog
 
 go 1.19
 
